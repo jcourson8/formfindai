@@ -6,9 +6,21 @@ import { ThemeProvider } from '@/components/theme-provider';
 import './globals.css';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://chat.vercel.ai'),
-  title: 'Next.js Chatbot Template',
-  description: 'Next.js chatbot template using the AI SDK.',
+  metadataBase: new URL('https://formfind.vercel.app'),
+  title: 'FormFind - AI Furniture Design',
+  description: 'Generate custom furniture designs with AI and find matching products to purchase.',
+  keywords: ['furniture design', 'AI design', 'interior design', 'product matching', 'furniture shopping'],
+  openGraph: {
+    title: 'FormFind - AI Furniture Design',
+    description: 'Generate custom furniture designs with AI and find matching products to purchase.',
+    images: ['/FormFind.jpg'],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'FormFind - AI Furniture Design',
+    description: 'Generate custom furniture designs with AI and find matching products to purchase.',
+    images: ['/FormFind.jpg'],
+  },
 };
 
 export const viewport = {
@@ -68,6 +80,8 @@ export default async function RootLayout({
             __html: THEME_COLOR_SCRIPT,
           }}
         />
+        <link rel="manifest" href="/manifest.json" />
+        <link rel="apple-touch-icon" href="/icon-192.png" />
       </head>
       <body className="antialiased">
         <ThemeProvider

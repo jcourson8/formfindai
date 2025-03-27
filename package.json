@@ -1,7 +1,8 @@
 {
-  "name": "ai-chatbot",
-  "version": "0.1.0",
+  "name": "formfind-ai",
+  "version": "1.0.0",
   "private": true,
+  "description": "AI-powered furniture design platform that helps users visualize and shop for furniture",
   "scripts": {
     "dev": "next dev --turbo",
     "build": "tsx lib/db/migrate && next build",

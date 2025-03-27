@@ -13,6 +13,20 @@ const nextConfig: NextConfig = {
         pathname: '**',
       },
     ],
+    domains: ['cdn.formfind.vercel.app', 'formfind-images.vercel.app'],
+  },
+  async redirects() {
+    return [
+      {
+        source: '/design',
+        destination: '/chat',
+        permanent: false,
+      },
+    ];
+  },
+  env: {
+    APP_NAME: 'FormFind',
+    APP_DESCRIPTION: 'AI-powered furniture design platform',
   }
 };
 
