@@ -1,7 +1,17 @@
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { HomeIcon, BoxIcon, ImageIcon } from './icons';
+import { ShoppingCartIcon } from 'lucide-react';
 
-import { MessageIcon, VercelIcon } from './icons';
+// Minimal text logo component for FormFind
+const FormFindLogo = ({ size = 32 }: { size?: number }) => {
+  return (
+    <div className="relative font-semibold flex items-center text-black dark:text-white" style={{ fontSize: `${size}px` }}>
+      <span className="text-primary">Form</span>
+      <span>Find</span>
+    </div>
+  );
+};
 
 export const Overview = () => {
   return (
@@ -14,37 +24,24 @@ export const Overview = () => {
       transition={{ delay: 0.5 }}
     >
       <div className="rounded-xl p-6 flex flex-col gap-8 leading-relaxed text-center max-w-xl">
-        <p className="flex flex-row justify-center gap-4 items-center">
-          <VercelIcon size={32} />
-          <span>+</span>
-          <MessageIcon size={32} />
-        </p>
+        <div className="flex justify-center">
+          <FormFindLogo size={38} />
+        </div>
+        <div className="flex justify-center gap-6">
+          <div className="flex flex-col items-center">
+            <div className="text-primary mb-2">
+              <ImageIcon size={24} />
+            </div>
+            <span className="text-sm">Generate designs</span>
+          </div>
+          <div className="flex items-center text-muted-foreground">→</div>
+          <div className="flex flex-col items-center">
+            <ShoppingCartIcon size={24} className="text-primary mb-2" />
+            <span className="text-sm">Shop products</span>
+          </div>
+        </div>
         <p>
-          This is an{' '}
-          <Link
-            className="font-medium underline underline-offset-4"
-            href="https://github.com/vercel/ai-chatbot"
-            target="_blank"
-          >
-            open source
-          </Link>{' '}
-          chatbot template built with Next.js and the AI SDK by Vercel. It uses
-          the{' '}
-          <code className="rounded-md bg-muted px-1 py-0.5">streamText</code>{' '}
-          function in the server and the{' '}
-          <code className="rounded-md bg-muted px-1 py-0.5">useChat</code> hook
-          on the client to create a seamless chat experience.
-        </p>
-        <p>
-          You can learn more about the AI SDK by visiting the{' '}
-          <Link
-            className="font-medium underline underline-offset-4"
-            href="https://sdk.vercel.ai/docs"
-            target="_blank"
-          >
-            docs
-          </Link>
-          .
+          Design custom furniture with AI, then find real products to buy.
         </p>
       </div>
     </motion.div>

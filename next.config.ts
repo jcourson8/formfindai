@@ -7,10 +7,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [
       {
-        hostname: 'avatar.vercel.sh',
+        protocol: 'https',
+        hostname: '**',
+        port: '',
+        pathname: '**',
       },
     ],
-  },
+  }
 };
 
 export default nextConfig;

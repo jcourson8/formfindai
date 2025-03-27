@@ -6,7 +6,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import { memo, useState } from 'react';
 import type { Vote } from '@/lib/db/schema';
 import { DocumentToolCall, DocumentToolResult } from './document';
-import { PencilEditIcon, SparklesIcon } from './icons';
+import { PencilEditIcon } from './icons';
 import { Markdown } from './markdown';
 import { MessageActions } from './message-actions';
 import { PreviewAttachment } from './preview-attachment';
@@ -19,6 +19,7 @@ import { MessageEditor } from './message-editor';
 import { DocumentPreview } from './document-preview';
 import { MessageReasoning } from './message-reasoning';
 import { UseChatHelpers } from '@ai-sdk/react';
+import { ImageDisplay } from './image-display';
 
 const PurePreviewMessage = ({
   chatId,
@@ -57,13 +58,6 @@ const PurePreviewMessage = ({
             },
           )}
         >
-          {message.role === 'assistant' && (
-            <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border bg-background">
-              <div className="translate-y-px">
-                <SparklesIcon size={14} />
-              </div>
-            </div>
-          )}
 
           <div className="flex flex-col gap-4 w-full">
             {message.experimental_attachments && (
@@ -116,10 +110,10 @@ const PurePreviewMessage = ({
                         </Tooltip>
                       )}
 
-                      <div
+                    <div
                         data-testid="message-content"
-                        className={cn('flex flex-col gap-4', {
-                          'bg-primary text-primary-foreground px-3 py-2 rounded-xl':
+                        className={cn('flex flex-col gap-4 px-4', {
+                          'bg-muted px-3 py-2 rounded-xl border border-border':
                             message.role === 'user',
                         })}
                       >
@@ -144,6 +138,20 @@ const PurePreviewMessage = ({
                     </div>
                   );
                 }
+              }
+
+              if (type === 'file' && part.mimeType?.startsWith('image/')) {
+                return (
+                  <div key={key} className="flex flex-col gap-2 w-full">
+                    <ImageDisplay 
+                      src={`data:${part.mimeType};base64,${part.data}`}
+                      alt="AI generated image"
+                      aspectRatio="auto"
+                      zoomable={true}
+                      className="max-w-full"
+                    />
+                  </div>
+                );
               }
 
               if (type === 'tool-invocation') {
@@ -214,7 +222,7 @@ const PurePreviewMessage = ({
               }
             })}
 
-            {!isReadonly && (
+            {/* {!isReadonly && (
               <MessageActions
                 key={`action-${message.id}`}
                 chatId={chatId}
@@ -222,7 +230,7 @@ const PurePreviewMessage = ({
                 vote={vote}
                 isLoading={isLoading}
               />
-            )}
+            )} */}
           </div>
         </div>
       </motion.div>
@@ -261,10 +269,6 @@ export const ThinkingMessage = () => {
           },
         )}
       >
-        <div className="size-8 flex items-center rounded-full justify-center ring-1 shrink-0 ring-border">
-          <SparklesIcon size={14} />
-        </div>
-
         <div className="flex flex-col gap-2 w-full">
           <div className="flex flex-col gap-4 text-muted-foreground">
             Hmm...

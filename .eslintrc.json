@@ -18,5 +18,6 @@
       }
     }
   },
-  "ignorePatterns": ["**/components/ui/**"]
+  "ignorePatterns": ["**/components/ui/**"],
+  "extensions": [".js", ".jsx", ".ts", ".tsx"]
 }

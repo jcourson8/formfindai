@@ -6,7 +6,7 @@ import {
   streamText,
 } from 'ai';
 import { auth } from '@/app/(auth)/auth';
-import { systemPrompt } from '@/lib/ai/prompts';
+// import { systemPrompt } from '@/lib/ai/prompts';
 import {
   deleteChatById,
   getChatById,
@@ -27,6 +27,25 @@ import { isProductionEnvironment } from '@/lib/constants';
 import { myProvider } from '@/lib/ai/providers';
 
 export const maxDuration = 60;
+
+const systemPrompt = () => {
+  return `You are FormFind, a furniture design AI focused on generating visual designs.
+
+  PRIMARY FOCUS:
+  - Generate furniture design images immediately when requested
+  - Create photorealistic furniture based on user specifications
+  - Help users find similar purchasable products matching their design interests
+
+  APPROACH:
+  - Prioritize visual output over lengthy explanations
+  - Generate designs directly without excessive text descriptions
+  - Only provide detailed design rationales when specifically asked
+  - Keep responses brief and focused on the visual output
+
+  When analyzing user-provided images, identify key design elements and offer relevant shopping suggestions.
+  
+  Your main goal is to help users visualize furniture designs and find real products to purchase.`;
+};
 
 export async function POST(request: Request) {
   try {
@@ -79,33 +98,67 @@ export async function POST(request: Request) {
       ],
     });
 
+    // Create a copy of messages to avoid modifying the original array
+    const messagesWithInstructions = [...messages];
+    
+    // Add role instructions if this appears to be a new conversation or just starting
+    // This is determined either by having only one message or checking if this is the first user message
+    if (messagesWithInstructions.length <= 2) {
+      const userMsgIndex = messagesWithInstructions.findIndex(msg => msg.role === 'user');
+      
+      if (userMsgIndex !== -1) {
+        const userMsg = messagesWithInstructions[userMsgIndex];
+        
+        // If userMsg.content is a string, prepend the system prompt
+        if (typeof userMsg.content === 'string') {
+          userMsg.content = `${systemPrompt()}\n\nUser says: ${userMsg.content}`;
+        } else if (Array.isArray(userMsg.parts)) {
+          // For parts array, prepend the system prompt to the first text part
+          const firstTextPartIndex = userMsg.parts.findIndex(p => 
+            typeof p === 'object' && 'text' in p && typeof p.text === 'string'
+          );
+          
+          if (firstTextPartIndex !== -1) {
+            const part = userMsg.parts[firstTextPartIndex];
+            if (typeof part === 'object' && 'text' in part) {
+              part.text = `${systemPrompt()}\n\nUser says: ${part.text}`;
+            }
+          }
+        }
+      }
+    }
+
     return createDataStreamResponse({
       execute: (dataStream) => {
         const result = streamText({
           model: myProvider.languageModel(selectedChatModel),
-          system: systemPrompt({ selectedChatModel }),
-          messages,
-          maxSteps: 5,
-          experimental_activeTools:
-            selectedChatModel === 'chat-model-reasoning'
-              ? []
-              : [
-                  'getWeather',
-                  'createDocument',
-                  'updateDocument',
-                  'requestSuggestions',
-                ],
+          messages: messagesWithInstructions,
+          // maxSteps: 5,
+          providerOptions: {
+            google: { 
+              responseModalities: ['TEXT', 'IMAGE'],
+            }
+          },
+          // experimental_activeTools:
+          //   selectedChatModel === 'chat-model-reasoning'
+          //     ? []
+          //     : [
+          //         'getWeather',
+          //         'createDocument',
+          //         'updateDocument',
+          //         'requestSuggestions',
+          //       ],
           experimental_transform: smoothStream({ chunking: 'word' }),
           experimental_generateMessageId: generateUUID,
-          tools: {
-            getWeather,
-            createDocument: createDocument({ session, dataStream }),
-            updateDocument: updateDocument({ session, dataStream }),
-            requestSuggestions: requestSuggestions({
-              session,
-              dataStream,
-            }),
-          },
+          // tools: {
+          //   getWeather,
+          //   createDocument: createDocument({ session, dataStream }),
+          //   updateDocument: updateDocument({ session, dataStream }),
+          //   requestSuggestions: requestSuggestions({
+          //     session,
+          //     dataStream,
+          //   }),
+          // },
           onFinish: async ({ response }) => {
             if (session.user?.id) {
               try {
@@ -142,10 +195,10 @@ export async function POST(request: Request) {
               }
             }
           },
-          experimental_telemetry: {
-            isEnabled: isProductionEnvironment,
-            functionId: 'stream-text',
-          },
+          // experimental_telemetry: {
+          //   isEnabled: isProductionEnvironment,
+          //   functionId: 'stream-text',
+          // },
         });
 
         result.consumeStream();
@@ -154,11 +207,31 @@ export async function POST(request: Request) {
           sendReasoning: true,
         });
       },
-      onError: () => {
-        return 'Oops, an error occured!';
+      onError: (error) => {
+        console.error('Streaming error:', error);
+        
+        // Create an error handler function to properly format the error
+        const errorHandler = (error: unknown) => {
+          if (error == null) {
+            return 'Unknown error occurred';
+          }
+          
+          if (typeof error === 'string') {
+            return error;
+          }
+          
+          if (error instanceof Error) {
+            return `Error: ${error.message}`;
+          }
+          
+          return JSON.stringify(error);
+        };
+        
+        return errorHandler(error);
       },
     });
   } catch (error) {
+    console.error('Error in chat route:', error);
     return new Response('An error occurred while processing your request!', {
       status: 404,
     });
@@ -190,6 +263,7 @@ export async function DELETE(request: Request) {
 
     return new Response('Chat deleted', { status: 200 });
   } catch (error) {
+    console.error('Error in delete chat route:', error);
     return new Response('An error occurred while processing your request!', {
       status: 500,
     });
